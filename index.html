@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Uzum Gabarit Kalkulyator</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f0f1a;
+  --card:#1a1a2e;
+  --card2:#1e1e35;
+  --accent:#7c4dff;
+  --accent2:#2AABEE;
+  --text:#fff;
+  --sub:#aaa;
+  --inp:#252540;
+  --border:#2e2e50;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:16px 14px 30px}
+/* Header */
+.header{background:linear-gradient(135deg,#6c3fc5,#2AABEE);border-radius:18px;padding:18px 16px;margin-bottom:16px;display:flex;align-items:center;gap:14px}
+.hico{width:52px;height:52px;background:rgba(255,255,255,.18);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.htxt h1{font-size:18px;font-weight:800;color:#fff}
+.htxt p{font-size:12px;color:rgba(255,255,255,.8);margin-top:2px}
+/* Lang */
+.lang-bar{display:flex;background:var(--card);border-radius:12px;padding:4px;gap:4px;margin-bottom:16px}
+.lang-btn{flex:1;padding:8px;border:none;background:transparent;border-radius:9px;font-size:13px;font-weight:700;color:var(--sub);cursor:pointer;transition:.2s}
+.lang-btn.on{background:var(--accent);color:#fff}
+/* Unit selector */
+.section-label{font-size:11px;color:var(--sub);margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.unit-bar{display:flex;background:var(--card);border-radius:12px;padding:4px;gap:4px;margin-bottom:16px}
+.unit-btn{flex:1;padding:9px;border:none;background:transparent;border-radius:9px;font-size:13px;font-weight:700;color:var(--sub);cursor:pointer;transition:.2s}
+.unit-btn.on{background:var(--accent);color:#fff}
+/* Dimension inputs */
+.dims{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.dim-box{background:var(--inp);border-radius:14px;padding:12px 8px 8px;border:1.5px solid var(--border);transition:.2s}
+.dim-box:focus-within{border-color:var(--accent)}
+.dim-label{font-size:11px;color:var(--sub);text-align:center;margin-bottom:6px}
+.dim-box input{width:100%;background:transparent;border:none;outline:none;font-size:22px;font-weight:700;color:var(--text);text-align:center;font-family:inherit}
+.dim-box input::placeholder{color:#444;font-size:18px}
+.dim-unit{font-size:11px;color:var(--sub);text-align:center;margin-top:4px}
+/* Buttons */
+.btn-row{display:flex;gap:10px;margin-bottom:16px}
+.btn-calc{flex:1;background:linear-gradient(135deg,var(--accent),#5c35cc);border:none;border-radius:14px;padding:15px;color:#fff;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.15s}
+.btn-calc:active{transform:scale(.97)}
+.btn-reset{width:52px;height:52px;background:var(--card2);border:1.5px solid var(--border);border-radius:14px;color:var(--sub);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+/* Result */
+.result-card{background:linear-gradient(135deg,#5c2fc2,#1a7ec4);border-radius:18px;padding:20px;margin-bottom:12px;text-align:center;display:none}
+.result-card.show{display:block}
+.r-label{font-size:12px;color:rgba(255,255,255,.75);margin-bottom:4px}
+.r-price{font-size:40px;font-weight:900;color:#fff;letter-spacing:-1px}
+.r-unit{font-size:16px;font-weight:400;opacity:.8}
+/* Info grid */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.info-box{background:var(--card);border-radius:14px;padding:12px;border:1.5px solid var(--border)}
+.ib-label{font-size:11px;color:var(--sub);margin-bottom:4px;display:flex;align-items:center;gap:4px}
+.ib-val{font-size:16px;font-weight:800;color:var(--text)}
+.ib-sub{font-size:11px;color:var(--sub);margin-top:2px}
+/* Storage card */
+.storage-card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px;border:1.5px solid var(--border);display:none}
+.storage-card.show{display:block}
+.s-title{font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.s-select{width:100%;background:var(--inp);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;margin-bottom:10px;font-family:inherit}
+.s-select option{background:#1a1a2e}
+.s-result{background:var(--inp);border-radius:12px;padding:12px;text-align:center}
+.s-r-label{font-size:11px;color:var(--sub);margin-bottom:4px}
+.s-r-val{font-size:22px;font-weight:900;color:var(--accent2)}
+/* Warning */
+.warn{background:#2a1f00;border:1.5px solid #f5a623;border-radius:12px;padding:12px;font-size:12px;color:#f5c842;margin-bottom:12px;display:none}
+.warn.show{display:block}
+/* FAQ */
+.faq-toggle{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:13px 16px;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.faq-body{background:var(--card2);border-radius:12px;padding:14px;font-size:12.5px;line-height:1.7;color:#ccc;margin-bottom:8px;display:none;border:1.5px solid var(--border)}
+.faq-body.open{display:block}
+.faq-body b{color:#fff}
+.badge{display:inline-block;background:var(--accent);color:#fff;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700}
+/* Footer */
+.footer{text-align:center;font-size:11px;color:#444;margin-top:8px}
+.footer a{color:#555;text-decoration:none}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="hico">📦</div>
+  <div class="htxt">
+    <h1>Uzum Gabarit</h1>
+    <p id="hSub">Kalkulyator v2.0 — tez va aniq hisoblash</p>
+  </div>
+</div>
+
+<!-- Language -->
+<div class="lang-bar">
+  <button class="lang-btn on" onclick="setLang('uz')">🇺🇿 O'zbek</button>
+  <button class="lang-btn" onclick="setLang('ru')">🇷🇺 Русский</button>
+</div>
+
+<!-- Unit -->
+<div class="section-label">🏷️ <span id="lUnit">O'lchov birligi</span></div>
+<div class="unit-bar">
+  <button class="unit-btn" onclick="setUnit('mm')">MM</button>
+  <button class="unit-btn on" onclick="setUnit('cm')">CM</button>
+  <button class="unit-btn" onclick="setUnit('m')">M</button>
+</div>
+
+<!-- Inputs -->
+<div class="dims">
+  <div class="dim-box">
+    <div class="dim-label" id="lL">Uzunlik</div>
+    <input type="number" id="iL" placeholder="0" min="0" inputmode="decimal">
+    <div class="dim-unit" id="uL">cm</div>
+  </div>
+  <div class="dim-box">
+    <div class="dim-label" id="lW">Eni</div>
+    <input type="number" id="iW" placeholder="0" min="0" inputmode="decimal">
+    <div class="dim-unit" id="uW">cm</div>
+  </div>
+  <div class="dim-box">
+    <div class="dim-label" id="lH">Balandlik</div>
+    <input type="number" id="iH" placeholder="0" min="0" inputmode="decimal">
+    <div class="dim-unit" id="uH">cm</div>
+  </div>
+</div>
+
+<!-- Buttons -->
+<div class="btn-row">
+  <button class="btn-calc" onclick="calculate()">🧮 <span id="lCalc">Hisoblash</span> →</button>
+  <button class="btn-reset" onclick="reset()" title="Reset">↺</button>
+</div>
+
+<!-- Logistics result -->
+<div class="result-card" id="resultCard">
+  <div class="r-label" id="lLogLabel">Logistika narxi</div>
+  <div class="r-price" id="rPrice">0</div>
+  <div class="r-unit" id="lSum">so'm</div>
+</div>
+
+<!-- Warning -->
+<div class="warn" id="warnBox"></div>
+
+<!-- Volume info -->
+<div class="info-grid" id="infoGrid" style="display:none">
+  <div class="info-box">
+    <div class="ib-label">📐 <span id="lVolMm">Hajm (mm³)</span></div>
+    <div class="ib-val" id="rVolMm">—</div>
+  </div>
+  <div class="info-box">
+    <div class="ib-label">📦 <span id="lVolCm">Hajm (cm³)</span></div>
+    <div class="ib-val" id="rVolCm">—</div>
+  </div>
+  <div class="info-box">
+    <div class="ib-label">💧 <span id="lVolL">Hajm (litr)</span></div>
+    <div class="ib-val" id="rVolL">—</div>
+    <div class="ib-sub" id="rVolLR">—</div>
+  </div>
+  <div class="info-box">
+    <div class="ib-label">🚚 <span id="lPerL">Narx/litr</span></div>
+    <div class="ib-val" id="rPerL">—</div>
+    <div class="ib-sub" id="lSumSub">so'm</div>
+  </div>
+</div>
+
+<!-- Storage -->
+<div class="storage-card" id="storageCard">
+  <div class="s-title">🏪 <span id="lStorTitle">Saqlash xarajati</span></div>
+  <select class="s-select" id="sSize" onchange="updateStorage()">
+    <option value="">-- O'lcham turini tanlang --</option>
+    <option value="mgt">МГТ — Kichik gabaritli tovar</option>
+    <option value="sgt">СГТ — O'rta gabaritli tovar</option>
+    <option value="kgt">КГТ — Katta gabaritli tovar</option>
+  </select>
+  <select class="s-select" id="sCat" onchange="updateStorage()">
+    <option value="standard">Oddiy kategoriya</option>
+    <option value="special">Kiyim / Poyabzal / Aksessuarlar</option>
+  </select>
+  <select class="s-select" id="sTurn" onchange="updateStorage()">
+    <option value="60">Oborachivaemost: 0–60 kun</option>
+    <option value="180">Oborachivaemost: 61–180 kun</option>
+    <option value="360">Oborachivaemost: 181–360 kun</option>
+    <option value="999">Oborachivaemost: 361+ kun</option>
+  </select>
+  <div class="s-result">
+    <div class="s-r-label" id="lStorDay">Saqlash tarifi (dona/kun)</div>
+    <div class="s-r-val" id="rStorVal">—</div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<div id="faqSection"></div>
+
+<div class="footer">naslai.uz &nbsp;|&nbsp; @uzum_gabarit_bot</div>
+
+<script>
+let lang='uz', unit='cm';
+
+const T={
+  uz:{
+    hSub:'Kalkulyator v2.0 — tez va aniq hisoblash',
+    lUnit:"O'lchov birligi",lL:'Uzunlik',lW:'Eni',lH:'Balandlik',
+    lCalc:'Hisoblash',lLogLabel:"Logistika narxi",lSum:"so'm",
+    lVolMm:'Hajm (mm³)',lVolCm:'Hajm (cm³)',lVolL:'Hajm (litr)',lPerL:"Narx/litr",lSumSub:"so'm",
+    lStorTitle:"Saqlash xarajati",lStorDay:"Saqlash tarifi (dona/kun)",
+    sSize:"-- O'lcham turini tanlang --",
+    sOpts:[['mgt',"МГТ — Kichik gabaritli tovar"],['sgt',"СГТ — O'rta gabaritli tovar"],['kgt',"КГТ — Katta gabaritli tovar"]],
+    sCatOpts:[['standard','Oddiy kategoriya'],['special','Kiyim / Poyabzal / Aksessuarlar']],
+    sTurnOpts:[['60','Oborachivaemost: 0–60 kun'],['180','Oborachivaemost: 61–180 kun'],['360','Oborachivaemost: 181–360 kun'],['999','Oborachivaemost: 361+ kun']],
+    warnVgx:"⚠️ VGX to'ldirilmasa — logistika avtomatik 50 000 so'm bo'ladi!",
+    warnMax:"⚠️ Maksimal logistika tarifi qo'llanildi. Hajm juda katta.",
+    free:"🆓 Bepul saqlash",
+    faq:[
+      ["📌 Yangi tarif qachondan?","4-may 2025 dan logistika va saqlash <b>litr bo'yicha</b> hisoblanadi. Hajm = Uzunlik × Eni × Balandlik ÷ 1000 (sm da)."],
+      ["📌 VGX ko'rsatilmasa?","Logistika avtomatik <b>50 000 so'm</b> bo'ladi. 20-aprel 2026 dan FBS bo'yicha farq 30%dan oshsa — <b>50 000 so'm jarima</b>."],
+      ["📌 Nima bo'yicha o'lchayman?","Har doim <b>upakofka</b> bo'yicha: yumshoq o'yinchoq → maks. o'lchamlar; kepka → balandlikni ham hisoblang; gilam → to'rtburchak sifatida."],
+      ["📌 Bepul saqlash muddati?","Yangi stok uchun: kiyim/poyabzal/aksessuarlar — <b>60 kun</b> bepul. Boshqa kategoriyalar — <b>30 yoki 60 kun</b> (kategoriyaga qarab)."],
+      ["📌 MGT/SGT/KGT nima?","MGT — kichik, SGT — o'rta, KGT — katta gabaritli tovar. O'lcham turi shaxsiy kabinetda ko'rsatilgan."]
+    ]
+  },
+  ru:{
+    hSub:'Калькулятор v2.0 — быстро и точно',
+    lUnit:"Единица измерения",lL:'Длина',lW:'Ширина',lH:'Высота',
+    lCalc:'Рассчитать',lLogLabel:"Стоимость логистики",lSum:"сум",
+    lVolMm:'Объём (мм³)',lVolCm:'Объём (см³)',lVolL:'Объём (литры)',lPerL:"Цена/литр",lSumSub:"сум",
+    lStorTitle:"Стоимость хранения",lStorDay:"Тариф хранения (шт/день)",
+    sSize:"-- Выберите тип размера --",
+    sOpts:[['mgt','МГТ — Малогабаритный товар'],['sgt','СГТ — Среднегабаритный товар'],['kgt','КГТ — Крупногабаритный товар']],
+    sCatOpts:[['standard','Обычная категория'],['special','Одежда / Обувь / Аксессуары']],
+    sTurnOpts:[['60','Оборачиваемость: 0–60 дней'],['180','Оборачиваемость: 61–180 дней'],['360','Оборачиваемость: 181–360 дней'],['999','Оборачиваемость: 361+ дней']],
+    warnVgx:"⚠️ Без ВГХ — логистика автоматически 50 000 сум!",
+    warnMax:"⚠️ Применён максимальный тариф логистики. Товар очень объёмный.",
+    free:"🆓 Бесплатное хранение",
+    faq:[
+      ["📌 Когда новый тариф?","С 4 мая 2025 логистика и хранение считаются <b>по литрам</b>. Объём = Длина × Ширина × Высота ÷ 1000 (в см)."],
+      ["📌 Без ВГХ что будет?","Логистика автоматически <b>50 000 сум</b>. С 20 апреля 2026 по FBS: разница более 30% — штраф <b>50 000 сум</b>."],
+      ["📌 Как измерять?","Всегда <b>по упаковке</b>: мягкая игрушка → макс. размеры; кепка → учитывайте высоту; ковёр → как прямоугольник."],
+      ["📌 Срок бесплатного хранения?","Для нового стока: одежда/обувь/аксессуары — <b>60 дней</b> бесплатно. Другие категории — <b>30 или 60 дней</b>."],
+      ["📌 МГТ/СГТ/КГТ что такое?","МГТ — малый, СГТ — средний, КГТ — крупный габарит. Тип указан в личном кабинете продавца."]
+    ]
+  }
+};
+
+const STD={60:0,180:{mgt:30,sgt:60,kgt:300},360:{mgt:45,sgt:90,kgt:450},999:{mgt:90,sgt:180,kgt:1500}};
+const SPC={60:0,180:{mgt:30,sgt:60,kgt:300},360:{mgt:35,sgt:70,kgt:360},999:{mgt:50,sgt:100,kgt:510}};
+
+function toCm(v){if(unit==='mm')return v/10;if(unit==='m')return v*100;return v;}
+function fmt(n){return n.toLocaleString('uz-UZ');}
+
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach((b,i)=>b.classList.toggle('on',i===(l==='uz'?0:1)));
+  applyLang();renderFaq();
+}
+function setUnit(u){
+  unit=u;
+  document.querySelectorAll('.unit-btn').forEach((b,i)=>b.classList.toggle('on',['mm','cm','m'][i]===u));
+  ['L','W','H'].forEach(x=>document.getElementById('u'+x).textContent=u);
+}
+
+function applyLang(){
+  const tx=T[lang];
+  document.getElementById('hSub').textContent=tx.hSub;
+  ['lUnit','lL','lW','lH','lCalc','lLogLabel','lSum','lVolMm','lVolCm','lVolL','lPerL','lSumSub','lStorTitle','lStorDay'].forEach(k=>{
+    let el=document.getElementById(k);if(el)el.textContent=tx[k];
+  });
+  // Rebuild selects
+  let ss=document.getElementById('sSize');
+  ss.innerHTML=`<option value="">${tx.sSize}</option>`;
+  tx.sOpts.forEach(([v,l])=>{let o=document.createElement('option');o.value=v;o.textContent=l;ss.appendChild(o);});
+  let sc=document.getElementById('sCat');sc.innerHTML='';
+  tx.sCatOpts.forEach(([v,l])=>{let o=document.createElement('option');o.value=v;o.textContent=l;sc.appendChild(o);});
+  let st=document.getElementById('sTurn');st.innerHTML='';
+  tx.sTurnOpts.forEach(([v,l])=>{let o=document.createElement('option');o.value=v;o.textContent=l;st.appendChild(o);});
+}
+
+function calculate(){
+  let l=parseFloat(document.getElementById('iL').value);
+  let w=parseFloat(document.getElementById('iW').value);
+  let h=parseFloat(document.getElementById('iH').value);
+  if(!l||!w||!h||l<=0||w<=0||h<=0){
+    document.getElementById('iL').focus();return;
+  }
+  let lc=toCm(l),wc=toCm(w),hc=toCm(h);
+  let volMm=lc*10*wc*10*hc*10;
+  let volCm=lc*wc*hc;
+  let volL=volCm/1000;
+  let volLR=Math.ceil(volL);
+
+  let logCost=volLR<=1?5250:Math.min(5250+(volLR-1)*250,50000);
+  let perL=volLR>0?Math.round(logCost/volLR):0;
+
+  // Show result
+  document.getElementById('rPrice').textContent=fmt(logCost);
+  document.getElementById('resultCard').classList.add('show');
+
+  // Volume info
+  document.getElementById('rVolMm').textContent=fmt(Math.round(volMm));
+  document.getElementById('rVolCm').textContent=fmt(Math.round(volCm));
+  document.getElementById('rVolL').textContent=volL.toFixed(3)+' л';
+  document.getElementById('rVolLR').textContent='→ '+volLR+' л (yaxlitlangan)';
+  document.getElementById('rPerL').textContent=fmt(perL);
+  document.getElementById('infoGrid').style.display='grid';
+
+  // Warnings
+  let wb=document.getElementById('warnBox');
+  wb.classList.remove('show');
+  if(logCost>=50000){wb.textContent=T[lang].warnMax;wb.classList.add('show');}
+
+  // Storage
+  document.getElementById('storageCard').classList.add('show');
+  updateStorage();
+
+  // Telegram haptic
+  if(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.HapticFeedback)
+    Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+}
+
+function updateStorage(){
+  let size=document.getElementById('sSize').value;
+  let cat=document.getElementById('sCat').value;
+  let turn=parseInt(document.getElementById('sTurn').value);
+  if(!size){document.getElementById('rStorVal').textContent='—';return;}
+  let tbl=cat==='special'?SPC:STD;
+  let rate=0;
+  if(turn>60){
+    let key=turn<=180?180:turn<=360?360:999;
+    rate=tbl[key][size]||0;
+  }
+  let tx=T[lang];
+  document.getElementById('rStorVal').textContent=rate===0?tx.free:(fmt(rate)+' '+tx.lSum);
+}
+
+function reset(){
+  ['iL','iW','iH'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('resultCard').classList.remove('show');
+  document.getElementById('infoGrid').style.display='none';
+  document.getElementById('storageCard').classList.remove('show');
+  document.getElementById('warnBox').classList.remove('show');
+  document.getElementById('sSize').selectedIndex=0;
+  document.getElementById('sTurn').selectedIndex=0;
+}
+
+function renderFaq(){
+  let tx=T[lang];
+  let html='';
+  tx.faq.forEach(([q,a],i)=>{
+    html+=`<button class="faq-toggle" onclick="toggleFaq(${i})"><span>${q}</span><span id="fa${i}">▾</span></button>
+    <div class="faq-body" id="fb${i}">${a}</div>`;
+  });
+  document.getElementById('faqSection').innerHTML=html;
+}
+function toggleFaq(i){
+  let fb=document.getElementById('fb'+i);
+  let fa=document.getElementById('fa'+i);
+  let open=fb.classList.toggle('open');
+  fa.textContent=open?'▴':'▾';
+}
+
+// Init Telegram Web App
+if(window.Telegram&&Telegram.WebApp){
+  Telegram.WebApp.ready();
+  Telegram.WebApp.expand();
+}
+applyLang();renderFaq();
+</script>
+</body>
+</html>
